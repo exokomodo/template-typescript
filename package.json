@@ -29,7 +29,7 @@
     "concurrently": "^9.0.0",
     "eslint": "^9.0.0",
     "markdownlint-cli2": "^0.21.0",
-    "npm-check-updates": "^19.0.0",
+    "npm-check-updates": "^23.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.0.0",
