@@ -10,11 +10,11 @@ MAKEFLAGS += --no-print-directory
 endif
 
 ifneq (,$(wildcard ./.env))
-    include .env
-    export
+	include .env
+	export
 endif
 
-JS_EXEC ?= bun
+JS_EXEC ?= npm
 JS_INSTALL ?= install
 
 MAIN ?= ./src/index.ts
@@ -26,11 +26,13 @@ EXE ?= ./build/index.js
 setup: setup/js ## Set up development environment
 
 .PHONY: setup/js
-setup/js: ## Install JS/TS toolchain (bun) and dependencies
-	if ! command -v bun &> /dev/null; then \
-		curl -fsSL https://bun.sh/install | bash; \
+setup/js: ## Install Node.js via nvm and project dependencies
+	if ! [ -s "$$HOME/.nvm/nvm.sh" ]; then \
+		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash; \
 	fi
-	bun install
+	. $$HOME/.nvm/nvm.sh
+	nvm install
+	$(JS_EXEC) $(JS_INSTALL)
 
 ##@ Build
 

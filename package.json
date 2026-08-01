@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "bun run src/index.ts",
+    "dev": "tsx src/index.ts",
     "start": "node build/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
     "concurrently": "^9.0.0",
     "eslint": "^9.0.0",
     "markdownlint-cli2": "^0.21.0",
