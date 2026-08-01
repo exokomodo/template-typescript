@@ -1,0 +1,38 @@
+{
+  "name": "template-typescript",
+  "type": "module",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "bun run src/index.ts",
+    "start": "node build/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "watch": "tsc --watch",
+    "check-updates": "ncu -u",
+    "lint:eslint": "eslint src",
+    "lint:types": "tsc --noEmit",
+    "lint:prettier": "prettier --check .",
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"!node_modules/**\"",
+    "lint": "concurrently -m1 npm:lint:*",
+    "fix:eslint": "eslint src --fix",
+    "fix:prettier": "prettier --write .",
+    "fix:md": "markdownlint-cli2 --fix \"**/*.md\" \"!node_modules/**\"",
+    "fix": "concurrently -m1 npm:fix:*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "markdownlint-cli2": "^0.21.0",
+    "npm-check-updates": "^19.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}
