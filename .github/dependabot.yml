@@ -4,7 +4,15 @@ updates:
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: "chore(deps/github-actions): "
+    labels:
+      - dependabot
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: daily
+    commit-message:
+      prefix: "chore(deps/npm): "
+    labels:
+      - dependabot
