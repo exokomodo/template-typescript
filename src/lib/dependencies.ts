@@ -1,5 +1,5 @@
-import Database from './database'
+import Database from "./database";
 
 export default interface Dependencies {
-    db: Database;
+  db: Database;
 }
