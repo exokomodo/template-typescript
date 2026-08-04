@@ -1,10 +1,23 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { loadConfig } from "./config";
+import { loadConfig } from "./config.js";
 
 describe("loadConfig", () => {
   afterEach(() => {
+    delete process.env.HOST;
     delete process.env.PORT;
     delete process.env.NODE_ENV;
+  });
+
+  it("returns loopback host when HOST is not set", () => {
+    delete process.env.HOST;
+    const config = loadConfig();
+    expect(config.host).toBe("127.0.0.1");
+  });
+
+  it("reads HOST from environment", () => {
+    process.env.HOST = "0.0.0.0";
+    const config = loadConfig();
+    expect(config.host).toBe("0.0.0.0");
   });
 
   it("returns default port when PORT is not set", () => {

@@ -1,0 +1,100 @@
+# Continuous Deployment — DISABLED BY DEFAULT.
+#
+# This workflow ships inert, so a fresh copy of the template never tries to
+# deploy anywhere. The job is gated on the `CD_ENABLED` repository variable, so
+# until you set it to `true` the runs show up in the Actions tab as skipped.
+#
+# To turn it on, see "Deployment" in the README. In short:
+#
+#   1. Point DNS at your server and give it a deploy user with NOPASSWD sudo.
+#   2. Add the secrets and variables listed below.
+#   3. Set the `CD_ENABLED` repository variable to `true`.
+#
+# Every default below is a placeholder. `example.com` is NOT your server:
+# replace SERVER_NAME and SSH_HOST with your own hostname, or the deploy will
+# fail trying to reach a domain you do not own.
+
+name: Continuous Deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+# Deploys are serialized and never cancelled: killing one mid-run can leave the
+# server with a half-installed release.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+
+    # The kill switch. Set the CD_ENABLED repository variable to 'true' to
+    # enable deploys, or delete this line once the repo is really deploying.
+    if: vars.CD_ENABLED == 'true'
+
+    environment:
+      name: prod
+      # Shown as the deployment link on the repository's environments page.
+      url: https://${{ vars.SERVER_NAME || 'example.com' }}
+
+    env:
+      # CHANGE ME: every one of these is a placeholder. Set them as repository
+      # variables rather than editing this file, so merges from the template
+      # stay clean.
+      SSH_USER: ${{ vars.SSH_USER || 'deploy' }}
+      SSH_HOST: ${{ vars.SSH_HOST || 'example.com' }}
+      SERVER_NAME: ${{ vars.SERVER_NAME || 'example.com' }}
+      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/srv/app' }}
+      APP_PORT: ${{ vars.APP_PORT || '3000' }}
+
+    steps:
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Trust the deploy host
+        env:
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          # Pinning the host key from a secret is the safe path. Without it,
+          # fall back to trusting whatever key the host presents right now.
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          else
+            echo "::warning::SSH_KNOWN_HOSTS is unset; trusting the key $SSH_HOST presents right now. Set it to the output of 'ssh-keyscan -H $SSH_HOST'."
+            ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          REPO_URL: https://github.com/${{ github.repository }}.git
+        run: |
+          # The heredoc is unquoted so these variables expand here, on the
+          # runner, and arrive as literals on the server.
+          ssh "$SSH_USER@$SSH_HOST" bash -euo pipefail -s <<EOF
+            # \`make deploy\` owns the deploy, including its own clone-or-pull.
+            # This only covers the very first run, when there is no checkout to
+            # run make from at all.
+            if [ ! -d "$DEPLOY_DIR/.git" ]; then
+              echo "Bootstrapping $DEPLOY_DIR from $REPO_URL"
+              git clone --branch main "$REPO_URL" "$DEPLOY_DIR"
+            fi
+
+            cd "$DEPLOY_DIR"
+            make deploy \
+              DEPLOY_BRANCH=main \
+              DEPLOY_DIR="$DEPLOY_DIR" \
+              SERVER_NAME="$SERVER_NAME" \
+              APP_PORT="$APP_PORT"
+          EOF
